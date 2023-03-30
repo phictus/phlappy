@@ -1,6 +1,7 @@
 package com.phictus.phlappy;
 
 import org.lwjgl.opengl.GL;
+import com.phictus.phlappy.graphics.Shader;
 
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -17,14 +18,41 @@ public class Main {
         GL.createCapabilities();
         glfwSwapInterval(1);
 
+        Shader.init();
+
+        float[] vboData = new float[] {
+            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+             0.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+             0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+        };
+
+        int vao = glGenVertexArrays();
+        int vbo = glGenBuffers();
+
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, vboData,  GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.SIZE / 8, 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.SIZE / 8, 3 * Float.SIZE / 8);
+
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
 
-            glClearColor(0.2f, 0.3f, 0.8f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            Shader.color.use();
+            glBindVertexArray(vao);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
 
             glfwSwapBuffers(window);
         }
+
+        glDeleteBuffers(vbo);
+        glDeleteVertexArrays(vao);
+
+        Shader.destroy();
 
         glfwDestroyWindow(window);
         glfwTerminate();
