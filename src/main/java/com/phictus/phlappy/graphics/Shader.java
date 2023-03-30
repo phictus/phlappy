@@ -2,6 +2,8 @@ package com.phictus.phlappy.graphics;
 
 import static org.lwjgl.opengl.GL33C.*;
 
+import com.phictus.phlappy.math.Mat4;
+
 public class Shader {
     public static Shader color;
 
@@ -13,12 +15,15 @@ public class Shader {
             layout(location = 0) in vec3 a_Position;
             layout(location = 1) in vec3 a_Color;
 
+            uniform mat4 u_ViewProjection;
+            uniform mat4 u_Transform;
+
             out vec3 v_Color;
 
             void main()
             {
                 v_Color = a_Color;
-                gl_Position = vec4(a_Position, 1.0);
+                gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
             }
             """;
         String fColor =
@@ -47,6 +52,8 @@ public class Shader {
         glUseProgram(program);
     }
 
+    private Shader() { }
+
     private int program;
 
     private int createShader(int type, String source) {
@@ -73,5 +80,9 @@ public class Shader {
 
         glDeleteShader(vShader);
         glDeleteShader(fShader);
+    }
+
+    public void setUniformMat4(String name, Mat4 value) {
+        glUniformMatrix4fv(glGetUniformLocation(program, name), false, value.data);
     }
 }

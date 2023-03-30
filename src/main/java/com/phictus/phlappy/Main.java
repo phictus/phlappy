@@ -1,11 +1,44 @@
 package com.phictus.phlappy;
 
 import org.lwjgl.opengl.GL;
+
+import com.phictus.phlappy.entities.Entity;
 import com.phictus.phlappy.graphics.Shader;
+import com.phictus.phlappy.math.Mat4;
 
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33C.*;
+
+class Player extends Entity {
+    @Override
+    protected void onStart() {
+        float[] vboData = new float[] {
+            0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
+        };
+        int[] eboData = new int[] { 0, 2, 1, 0, 2, 3 };
+
+        mesh.create(vboData, eboData, 6);
+        mesh.addAttrib(3);
+        mesh.addAttrib(3);
+        shader = Shader.color;
+        position.x = 1280.0f / 2.0f;
+        position.y = 720.0f / 2.0f;
+        position.z = 0.9f;
+        scale.x = 10.0f;
+        scale.y = 10.0f;
+    }
+
+    @Override
+    protected void onUpdate(final float deltaTime) {
+        rotation += Math.toRadians(90.0f) * deltaTime;
+        scale.x += 10.0f * deltaTime;
+        scale.y += 10.0f * deltaTime;
+    }
+}
 
 public class Main {
     public static void main(String[] args) {
@@ -19,39 +52,31 @@ public class Main {
         glfwSwapInterval(1);
 
         Shader.init();
+        Player player = new Player();
+        player.init();
 
-        float[] vboData = new float[] {
-            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-             0.0f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-             0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
-        };
+        Mat4 viewProjection = Mat4.orthographic(0.0f, 1280.0f, 0.0f, 720.0f, -1.0f, 1.0f);
+        Shader.color.use();
+        Shader.color.setUniformMat4("u_ViewProjection", viewProjection);
 
-        int vao = glGenVertexArrays();
-        int vbo = glGenBuffers();
-
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vboData,  GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * Float.SIZE / 8, 0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, false, 6 * Float.SIZE / 8, 3 * Float.SIZE / 8);
-
+        double lastFrameTime = 0.0;
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents();
 
+            final double time = glfwGetTime();
+            final float deltaTime = (float)(time - lastFrameTime);
+            lastFrameTime = time;
+
+            player.update(deltaTime);
+
             glClear(GL_COLOR_BUFFER_BIT);
 
-            Shader.color.use();
-            glBindVertexArray(vao);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            player.render();
 
             glfwSwapBuffers(window);
         }
 
-        glDeleteBuffers(vbo);
-        glDeleteVertexArrays(vao);
-
+        player.destroy();
         Shader.destroy();
 
         glfwDestroyWindow(window);
