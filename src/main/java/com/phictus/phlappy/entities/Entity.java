@@ -2,6 +2,7 @@ package com.phictus.phlappy.entities;
 
 import com.phictus.phlappy.graphics.Mesh;
 import com.phictus.phlappy.graphics.Shader;
+import com.phictus.phlappy.graphics.Texture2D;
 import com.phictus.phlappy.math.Mat4;
 import com.phictus.phlappy.math.Vec3;
 
@@ -14,6 +15,7 @@ public abstract class Entity {
 
     protected Mesh mesh;
     protected Shader shader;
+    protected Texture2D texture;
 
     protected abstract void onStart();
     protected abstract void onUpdate(final float deltaTime);
@@ -35,6 +37,8 @@ public abstract class Entity {
     public void render() {
         shader.use();
         shader.setUniformMat4("u_Transform", transform);
+        texture.use();
+        shader.setUniformInt("u_Texture", 0);
         mesh.draw();
     }
 }

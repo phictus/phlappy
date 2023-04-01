@@ -2,43 +2,15 @@ package com.phictus.phlappy;
 
 import org.lwjgl.opengl.GL;
 
-import com.phictus.phlappy.entities.Entity;
+import com.phictus.phlappy.entities.Bird;
 import com.phictus.phlappy.graphics.Shader;
+import com.phictus.phlappy.graphics.Texture2D;
 import com.phictus.phlappy.math.Mat4;
 
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33C.*;
 
-class Player extends Entity {
-    @Override
-    protected void onStart() {
-        float[] vboData = new float[] {
-            0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f
-        };
-        int[] eboData = new int[] { 0, 2, 1, 0, 2, 3 };
-
-        mesh.create(vboData, eboData, 6);
-        mesh.addAttrib(3);
-        mesh.addAttrib(3);
-        shader = Shader.color;
-        position.x = 1280.0f / 2.0f;
-        position.y = 720.0f / 2.0f;
-        position.z = 0.9f;
-        scale.x = 10.0f;
-        scale.y = 10.0f;
-    }
-
-    @Override
-    protected void onUpdate(final float deltaTime) {
-        rotation += Math.toRadians(90.0f) * deltaTime;
-        scale.x += 10.0f * deltaTime;
-        scale.y += 10.0f * deltaTime;
-    }
-}
 
 public class Main {
     public static void main(String[] args) {
@@ -50,14 +22,18 @@ public class Main {
         glfwMakeContextCurrent(window);
         GL.createCapabilities();
         glfwSwapInterval(1);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         Shader.init();
-        Player player = new Player();
-        player.init();
+        Texture2D.init();
+
+        Bird bird = new Bird();
+        bird.init();
 
         Mat4 viewProjection = Mat4.orthographic(0.0f, 1280.0f, 0.0f, 720.0f, -1.0f, 1.0f);
-        Shader.color.use();
-        Shader.color.setUniformMat4("u_ViewProjection", viewProjection);
+        Shader.texture.use();
+        Shader.texture.setUniformMat4("u_ViewProjection", viewProjection);
 
         double lastFrameTime = 0.0;
         while (!glfwWindowShouldClose(window)) {
@@ -67,16 +43,18 @@ public class Main {
             final float deltaTime = (float)(time - lastFrameTime);
             lastFrameTime = time;
 
-            player.update(deltaTime);
+            bird.update(deltaTime);
 
             glClear(GL_COLOR_BUFFER_BIT);
 
-            player.render();
+            bird.render();
 
             glfwSwapBuffers(window);
         }
 
-        player.destroy();
+        bird.destroy();
+
+        Texture2D.destroy();
         Shader.destroy();
 
         glfwDestroyWindow(window);

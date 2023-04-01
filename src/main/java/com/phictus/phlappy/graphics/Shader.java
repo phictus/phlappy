@@ -2,50 +2,22 @@ package com.phictus.phlappy.graphics;
 
 import static org.lwjgl.opengl.GL33C.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import com.phictus.phlappy.math.Mat4;
 
 public class Shader {
-    public static Shader color;
+    public static Shader texture;
 
     public static void init() {
-        String vColor =
-            """
-            #version 330 core
-
-            layout(location = 0) in vec3 a_Position;
-            layout(location = 1) in vec3 a_Color;
-
-            uniform mat4 u_ViewProjection;
-            uniform mat4 u_Transform;
-
-            out vec3 v_Color;
-
-            void main()
-            {
-                v_Color = a_Color;
-                gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
-            }
-            """;
-        String fColor =
-            """
-            #version 330 core
-
-            layout(location = 0) out vec4 o_Color;
-
-            in vec3 v_Color;
-
-            void main()
-            {
-                o_Color = vec4(v_Color, 1.0);
-            }
-            """;
-
-        color = new Shader();
-        color.createProgram(vColor, fColor);
+        texture = new Shader();
+        texture.createProgram("assets/texture_v.glsl", "assets/texture_f.glsl");
     }
 
     public static void destroy() {
-        glDeleteProgram(color.program);
+        glDeleteProgram(texture.program);
     }
 
     public void use() {
@@ -66,8 +38,13 @@ public class Shader {
 
     private void createProgram(String vShaderSource, String fShaderSource) {
         program = glCreateProgram();
-        int vShader = createShader(GL_VERTEX_SHADER, vShaderSource);
-        int fShader = createShader(GL_FRAGMENT_SHADER, fShaderSource);
+        int vShader = 0, fShader = 0;
+        try {
+            vShader = createShader(GL_VERTEX_SHADER, Files.readString(Path.of(vShaderSource)));
+            fShader = createShader(GL_FRAGMENT_SHADER, Files.readString(Path.of(fShaderSource)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         glAttachShader(program, vShader);
         glAttachShader(program, fShader);
@@ -84,5 +61,9 @@ public class Shader {
 
     public void setUniformMat4(String name, Mat4 value) {
         glUniformMatrix4fv(glGetUniformLocation(program, name), false, value.data);
+    }
+
+    public void setUniformInt(String name, int value) {
+        glUniform1i(glGetUniformLocation(program, name), value);
     }
 }
