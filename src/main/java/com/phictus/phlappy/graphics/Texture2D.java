@@ -9,14 +9,19 @@ import static org.lwjgl.opengl.GL33C.*;
 
 public class Texture2D {
     public static Texture2D bird;
+    public static Texture2D background;
 
     public static void init() {
         bird = new Texture2D();
         bird.createTexture("assets/bird.png");
+
+        background = new Texture2D();
+        background.createTexture("assets/background.png");
     }
 
     public static void destroy() {
         glDeleteTextures(bird.texture);
+        glDeleteTextures(background.texture);
     }
 
     public void use() {

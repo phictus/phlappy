@@ -1,6 +1,8 @@
 package com.phictus.phlappy;
 
 import org.lwjgl.opengl.GL;
+
+import com.phictus.phlappy.entities.Background;
 import com.phictus.phlappy.entities.Bird;
 import com.phictus.phlappy.graphics.Shader;
 import com.phictus.phlappy.graphics.Texture2D;
@@ -27,6 +29,9 @@ public class Game {
         Shader.init();
         Texture2D.init();
 
+        Background background = new Background();
+        background.init();
+
         Bird bird = new Bird();
         bird.init();
 
@@ -44,16 +49,19 @@ public class Game {
             if (!running && isSpaceDown())
                 running = true;
 
+            background.update(deltaTime);
             bird.update(deltaTime);
 
             glClear(GL_COLOR_BUFFER_BIT);
 
+            background.render();
             bird.render();
 
             glfwSwapBuffers(window);
         }
 
         bird.destroy();
+        background.destroy();
 
         Texture2D.destroy();
         Shader.destroy();
