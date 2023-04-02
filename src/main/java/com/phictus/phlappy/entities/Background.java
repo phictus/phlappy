@@ -42,18 +42,18 @@ public class Background extends Entity {
         texture = Texture2D.background;
         scale.x = 600.0f;
         scale.y = 720.0f;
-        position.x = INITIAL_POSITION;
+        position.x = 0.0f;
         position.z = 0.9f;
     }
 
     @Override
     protected void onUpdate(final float deltaTime) {
-        position.x -= VELOCITY * deltaTime;
-        if (position.x >= 0.0f)
-            position.x = INITIAL_POSITION;
+        position.x += VELOCITY * deltaTime;
+        if (position.x <= CHANGE_POSITION)
+            position.x = 0.0f;
 
     }
 
-    private static final float INITIAL_POSITION = -576.0f;
+    private static final float CHANGE_POSITION = -576.0f;
     private static final float VELOCITY = -100.0f;
 }
